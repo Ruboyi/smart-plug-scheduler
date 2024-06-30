@@ -106,6 +106,7 @@ func EncontrarRangoMasBarato(precios PreciosLuz) (horaInicio string, horaFin str
 		listaPrecios = append(listaPrecios, precio)
 	}
 
+	// Ordenar listaPrecios por la hora de inicio
 	sort.Slice(listaPrecios, func(i, j int) bool {
 		return listaPrecios[i].Hour < listaPrecios[j].Hour
 	})
@@ -113,6 +114,7 @@ func EncontrarRangoMasBarato(precios PreciosLuz) (horaInicio string, horaFin str
 	minPrecio := float64(1<<63 - 1) // Un número muy grande
 	var inicio int
 
+	// Iterar sobre los precios para encontrar el rango de 3 horas consecutivas más barato
 	for i := 0; i <= len(listaPrecios)-3; i++ {
 		sumaPrecios := listaPrecios[i].Price + listaPrecios[i+1].Price + listaPrecios[i+2].Price
 		if sumaPrecios < minPrecio {
@@ -136,7 +138,10 @@ func ConvierteHora(hora string) string {
 func ProgramarEncendido(horaInicio string, horaFin string, enchufeURL string) {
 	horaInicio = ConvierteHora(horaInicio)
 	
-	horaInicioTime, err := time.Parse("15:04", horaInicio)
+	// Obtener la fecha de hoy y combinarla con la hora de inicio
+	now := time.Now()
+	hoyInicio := fmt.Sprintf("%d-%02d-%02dT%s:00Z", now.Year(), now.Month(), now.Day(), horaInicio)
+	horaInicioTime, err := time.Parse(time.RFC3339, hoyInicio)
 	if err != nil {
 		log.Println("Error al parsear la hora de inicio:", err)
 		return
@@ -145,17 +150,7 @@ func ProgramarEncendido(horaInicio string, horaFin string, enchufeURL string) {
 	log.Printf("Hora de inicio: %s", horaInicioTime.Format("15:04"))
 
 	// Verificar que la hora de inicio sea en el futuro
-	//Coger hora y minuto actual para comparar con la hora de inicio
-	now := time.Now()
-	horaActual, err := time.Parse("15:04", now.Format("15:04"))
-	if err != nil {
-		log.Println("Error al parsear la hora actual:", err)
-		return
-	}
-
-
-	log.Printf( "Hora actual: %s", horaActual)
-	if horaInicioTime.Before(horaActual) {
+	if horaInicioTime.Before(now) {
 		log.Println("La hora de inicio ya ha pasado, no se puede programar el encendido.")
 		return
 	}
@@ -166,20 +161,19 @@ func ProgramarEncendido(horaInicio string, horaFin string, enchufeURL string) {
 
 	go func(encendido, apagado time.Time) {
 		log.Println("Esperando hasta la hora de encendido")
-		log.Printf("Hora de encendido: %s", encendido.Format("15:04"))
-		log.Printf("Hora de apagado: %s", apagado.Format("15:04"))
-		// Esperar hasta la hora de encendido
 		time.Sleep(time.Until(encendido))
 		if err := EncenderEnchufe(enchufeURL); err != nil {
 			log.Println(err)
 			return
 		}
 
-		// Esperar 3 horas antes de apagar el enchufe
-		time.Sleep(time.Until(apagado) - time.Until(encendido))
+		log.Println("Enchufe encendido")
+
+		time.Sleep(3 * time.Hour)
 		if err := ApagarEnchufe(enchufeURL); err != nil {
 			log.Println(err)
 		}
+		log.Println("Enchufe apagado")
 	}(horaInicioTime, horaApagadoTime)
 }
 
