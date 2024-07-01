@@ -136,12 +136,18 @@ func ConvierteHora(hora string) string {
 
 // ProgramarEncendido programa el encendido y apagado del enchufe
 func ProgramarEncendido(horaInicio string, horaFin string, enchufeURL string) {
+	loc, err := time.LoadLocation("Europe/Madrid")
+	if err != nil {
+		log.Println("Error al cargar la zona horaria:", err)
+		return
+	}
+
 	horaInicio = ConvierteHora(horaInicio)
 	
 	// Obtener la fecha de hoy y combinarla con la hora de inicio
-	now := time.Now()
-	hoyInicio := fmt.Sprintf("%d-%02d-%02dT%s:00Z", now.Year(), now.Month(), now.Day(), horaInicio)
-	horaInicioTime, err := time.Parse(time.RFC3339, hoyInicio)
+	now := time.Now().In(loc)
+	hoyInicio := fmt.Sprintf("%d-%02d-%02dT%s:00", now.Year(), now.Month(), now.Day(), horaInicio)
+	horaInicioTime, err := time.ParseInLocation("2006-01-02T15:04:05", hoyInicio, loc)
 	if err != nil {
 		log.Println("Error al parsear la hora de inicio:", err)
 		return
@@ -215,7 +221,7 @@ func main() {
 	actualizarYProgramar()
 
 	// Programar actualización diaria
-	c := cron.New()
+	c := cron.New(cron.WithLocation(time.FixedZone("Europe/Madrid", 2*3600)))
 	c.AddFunc("@daily", actualizarYProgramar)
 	c.Start()
 
@@ -227,5 +233,6 @@ func main() {
 
 // startsWith verifica si una cadena empieza con un prefijo dado
 func startsWith(str, prefix string) bool {
+
 	return len(str) >= len(prefix) && str[:len(prefix)] == prefix
 }
