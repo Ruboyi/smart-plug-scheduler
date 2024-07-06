@@ -56,7 +56,7 @@ func ObtenerPreciosLuz(url string) (PreciosLuz, error) {
 // EncenderEnchufe hace una solicitud para encender el enchufe
 func EncenderEnchufe(url string) error {
 	log.Println("Enviando solicitud para encender el enchufe")
-	req, err := http.NewRequest("POST", url+"/encender", nil)
+	req, err := http.NewRequest("POST", url+"/on", nil)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func EncenderEnchufe(url string) error {
 // ApagarEnchufe hace una solicitud para apagar el enchufe
 func ApagarEnchufe(url string) error {
 	log.Println("Enviando solicitud para apagar el enchufe")
-	req, err := http.NewRequest("POST", url+"/apagar", nil)
+	req, err := http.NewRequest("POST", url+"/off", nil)
 	if err != nil {
 		return err
 	}
