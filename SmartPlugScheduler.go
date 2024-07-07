@@ -220,9 +220,9 @@ func main() {
 	// Actualizar y programar encendido al iniciar
 	actualizarYProgramar()
 
-	// Programar actualización diaria
+	// Programar actualización diaria a las 3:00
 	c := cron.New(cron.WithLocation(time.FixedZone("Europe/Madrid", 2*3600)))
-	c.AddFunc("@daily", actualizarYProgramar)
+	c.AddFunc("0 3 * * *", actualizarYProgramar)
 	c.Start()
 
 	log.Println("El programa está en ejecución")
